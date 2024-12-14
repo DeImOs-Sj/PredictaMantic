@@ -9,57 +9,39 @@ import {
 } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useReadContract } from 'wagmi'
-// import { abi } from './abi'
-
-// function App() {
-//   const result = useReadContract({
-//     abi,
-//     address: '0x480b8a60f667e3dDa6e593dA57c093c4a5eC06E3',
-//     functionName: 'totalSupply',
-//   })
-// }
-
+import { useReadContract, useReadContracts } from "wagmi";
+import { abi } from "../abi/abi";
 
 const dummyMarketDataArray: Market[] = [
   {
     id: BigInt(1),
     description: "Will it rain tomorrow?",
-    predictionX: "Yes",
-    predictionY: "No",
-    endTime: BigInt(1733310646),
-    status: BigInt(0),
-    winningPrediction: BigInt(0),
-    totalPool: BigInt(1000),
-    poolX: BigInt(600),
-    poolY: BigInt(400),
-    image: "/default-image.jpeg",
+    image: "/result.jpeg",
+    endTime: 0n,
+    status: 0,
+    totalPool: 0n,
+    yesPool: 0n,
+    noPool: 0n,
   },
   {
     id: BigInt(2),
     description: "Is the stock market going up?",
-    predictionX: "Yes",
-    predictionY: "No",
-    endTime: BigInt(1733310746),
-    status: BigInt(1),
-    winningPrediction: BigInt(1),
-    totalPool: BigInt(2000),
-    poolX: BigInt(800),
-    poolY: BigInt(1200),
-    image: "/default-image.jpeg",
+    image: "/result.jpeg",
+    endTime: 0n,
+    status: 0,
+    totalPool: 0n,
+    yesPool: 0n,
+    noPool: 0n,
   },
   {
     id: BigInt(3),
     description: "Will the next iPhone have a notch?",
-    predictionX: "Yes",
-    predictionY: "No",
-    endTime: BigInt(1733310846),
-    status: BigInt(0),
-    winningPrediction: BigInt(0),
-    totalPool: BigInt(1500),
-    poolX: BigInt(900),
-    poolY: BigInt(600),
-    image: "/default-image.jpeg",
+    image: "/result.jpeg",
+    endTime: 0n,
+    status: 0,
+    totalPool: 0n,
+    yesPool: 0n,
+    noPool: 0n,
   },
 ];
 
@@ -76,6 +58,113 @@ const SwipeableCard = ({
   const yesOpacity = useTransform(x, [-200, 0, 100], [0, 0, 1]);
   const noOpacity = useTransform(x, [-100, 0, 200], [1, 0, 0]);
   const controls = useAnimation();
+  const [markets, setMarkets] = useState<Market[]>([]);
+  const [currentMarketId, setCurrentMarketId] = useState<number>(3);
+
+  const { data: nextMarketId } = useReadContract({
+    address: "0x22ac2b97c22fb8c11f4380d35bfd24d7c3c504A4",
+    abi,
+    functionName: "nextMarketId",
+  });
+
+  useEffect(() => {
+    console.log("Next market ID:", nextMarketId);
+  }, [nextMarketId]);
+
+  const {
+    data: marketData,
+    isError,
+    isLoading,
+    error,
+  } = useReadContract({
+    address: "0x22ac2b97c22fb8c11f4380d35bfd24d7c3c504A4",
+    abi: [
+      {
+        inputs: [
+          {
+            internalType: "uint256",
+            name: "marketId",
+            type: "uint256",
+          },
+        ],
+        name: "getMarket",
+        outputs: [
+          {
+            internalType: "uint256",
+            name: "id",
+            type: "uint256",
+          },
+          {
+            internalType: "string",
+            name: "description",
+            type: "string",
+          },
+          {
+            internalType: "uint256",
+            name: "endTime",
+            type: "uint256",
+          },
+          {
+            internalType: "enum BinaryPredictionMarket.MarketStatus",
+            name: "status",
+            type: "uint8",
+          },
+          {
+            internalType: "enum BinaryPredictionMarket.Prediction",
+            name: "winningPrediction",
+            type: "uint8",
+          },
+          {
+            internalType: "uint256",
+            name: "totalPool",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "yesPool",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "noPool",
+            type: "uint256",
+          },
+        ],
+        stateMutability: "view",
+        type: "function",
+      },
+    ],
+    functionName: "getMarket",
+    args: [BigInt(currentMarketId)],
+  });
+
+  console.log("Market data:", currentMarketId, marketData);
+
+  useEffect(() => {
+    if (marketData) {
+      console.log("Current market ID:", currentMarketId);
+      console.log("Raw market data:", marketData);
+
+      // Format the data for better debugging
+      const formattedData = {
+        id: marketData[0]?.toString(),
+        description: marketData[1],
+        endTime: marketData[2]
+          ? new Date(Number(marketData[2]) * 1000).toLocaleString()
+          : null,
+        status: marketData[3],
+        winningPrediction: marketData[4],
+        totalPool: marketData[5]?.toString(),
+        yesPool: marketData[6]?.toString(),
+        noPool: marketData[7]?.toString(),
+      };
+
+      console.log("Formatted market data:", formattedData);
+    }
+    if (isError) {
+      console.error("Error fetching market:", error);
+    }
+  }, [marketData, isError, error, currentMarketId]);
 
   const handleDragEnd = async (_: never, info: PanInfo) => {
     const swipeThreshold = 100;
@@ -159,7 +248,7 @@ const SwipeableCard = ({
         <div className="absolute bottom-14 left-4 flex flex-col gap-4 text-white">
           <h2 className="font-brice-semibold text-2xl">{market.description}</h2>
           <div className="flex flex-col gap-2">
-            <p>{market.predictionX}</p>
+            {/* <p>{market.predictionX}</p>
             <Progress
               value={(Number(market.poolX) / Number(market.totalPool)) * 100}
             />
@@ -169,7 +258,7 @@ const SwipeableCard = ({
                 100
               ).toFixed(1)}
               % Chance
-            </p>
+            </p> */}
           </div>
         </div>
       </div>
@@ -178,66 +267,30 @@ const SwipeableCard = ({
 };
 
 export default function Home() {
+  const {
+    data: marketData,
+    isError,
+    isLoading,
+  } = useReadContract({
+    address: "0x22ac2b97c22fb8c11f4380d35bfd24d7c3c504A4",
+    abi,
+    functionName: "getMarket",
+    args: [BigInt(1)], // Update args if marketId is dynamic
+  });
+
+  useEffect(() => {
+    if (marketData) {
+      console.log("Raw market data:", marketData);
+    } else if (isError) {
+      console.error("Error fetching market data.");
+    } else if (isLoading) {
+      console.log("Loading market data...");
+    }
+  }, [marketData, isError, isLoading]);
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const navigate = useNavigate();
   const [market, setMarket] = useState<Market | null>(null);
-  // const [loading, setLoading] = useState(true);
-  // const [error, setError] = useState(null);
-
-
-
-
-
-  // const getMarket = async (marketId: any) => {
-  //   try {
-  //     // setLoading(true);
-  //     // setError(null);
-
-  //     const result = await client.runMethod(contractAddress, "getGetMarket", [
-  //       { type: "int", value: marketId },
-  //     ]);
-
-  //     if (result) {
-  //       const marketData = {
-  //         id: result.stack.readBigNumber(),
-  //         description: result.stack
-  //           .readCell()
-  //           .beginParse()
-  //           .loadBuffer(100)
-  //           .toString(),
-  //         predictionX: result.stack
-  //           .readCell()
-  //           .beginParse()
-  //           .loadBuffer(100)
-  //           .toString(),
-  //         predictionY: result.stack
-  //           .readCell()
-  //           .beginParse()
-  //           .loadBuffer(100)
-  //           .toString(),
-  //         endTime: result.stack.readBigNumber(),
-  //         status: result.stack.readBigNumber(),
-  //         totalPool: result.stack.readBigNumber(),
-  //         poolX: result.stack.readBigNumber(),
-  //         poolY: result.stack.readBigNumber(),
-  //         winningPrediction: result.stack.readBigNumber(),
-  //         image: "/default-image.jpeg", // Add a default image or fetch it if available
-  //       };
-  //       setMarket(marketData);
-  //     }
-  //   } catch (err) {
-  //     console.log("Error fetching market:", err);
-  //     // setError(err.message);
-  //     console.error("Error fetching market:", err);
-  //   } finally {
-  //     // setLoading(false);
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   // Fetch market with ID 1 on component mount
-  //   getMarket(1);
-  // }, []);
 
   useEffect(() => {
     console.log(market);

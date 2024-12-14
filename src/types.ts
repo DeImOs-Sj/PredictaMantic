@@ -1,15 +1,12 @@
 interface Market {
   id: bigint;
   description: string;
-  predictionX: string;
-  predictionY: string;
   endTime: bigint;
-  status: bigint;
-  winningPrediction: bigint;
+  status: number; // Match MarketStatus enum
   totalPool: bigint;
-  poolX: bigint;
-  poolY: bigint;
-  image: string;
+  yesPool: bigint;
+  noPool: bigint;
+  image?: string;
 }
 
 interface Bet {

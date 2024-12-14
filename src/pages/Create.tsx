@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
@@ -10,17 +10,61 @@ import {
 import { cn } from "@/lib/utils";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
+import { abi } from "../abi/abi";
+import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 
 export default function Create() {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+
+  const { data: hash, writeContract } = useWriteContract();
+
+  const { isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+    hash,
+  });
+
+  useEffect(() => {
+    if (isConfirmed) {
+      toast({
+        title: "Success",
+        description: "Prediction market created successfully!",
+      });
+    }
+  }, [isConfirmed, toast]);
 
   const [formData, setFormData] = useState({
     description: "",
     endTime: new Date(),
   });
 
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    try {
+      setLoading(true);
+
+      const endTimeUnix = Math.floor(formData.endTime.getTime() / 1000);
+
+      console.log("Creating market with description:", formData.description);
+      console.log("End time:", endTimeUnix);
+
+      await writeContract({
+        address: "0x22ac2b97c22fb8c11f4380d35bfd24d7c3c504A4",
+        abi: abi,
+        functionName: "createMarket",
+        args: [formData.description, endTimeUnix],
+      });
+    } catch (error) {
+      console.error("Error creating market:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create prediction market. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="px-4 py-8">
@@ -34,7 +78,7 @@ export default function Create() {
             <h1 className="font-brice-semibold text-2xl">Create Prediction</h1>
           </div>
 
-          <form className="flex flex-col gap-4">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
               <label className="block mb-2 font-medium">Description</label>
               <input
@@ -49,7 +93,6 @@ export default function Create() {
                 disabled={loading}
               />
             </div>
-
 
             <div>
               <label className="block mb-2 font-medium">End Time</label>
