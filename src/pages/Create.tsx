@@ -63,6 +63,8 @@ export default function Create() {
           formData.optionB,
           endTimeUnix,
         ],
+        account: undefined,
+        chain: undefined,
       });
     } catch (error) {
       console.error("Error creating market:", error);

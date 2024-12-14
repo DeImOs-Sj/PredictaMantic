@@ -3,17 +3,13 @@ import {
   WalletIcon,
   Copy,
   ExternalLink,
-  LogOut,
   Award,
   Activity,
   History,
 } from "lucide-react";
-import { ConnectButton } from '@rainbow-me/rainbowkit';
-
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 export default function Profile() {
-
-
   const stats = [
     { icon: Award, label: "Total Predictions", value: "12" },
     { icon: Activity, label: "Win Rate", value: "75%" },
@@ -37,14 +33,10 @@ export default function Profile() {
                 <h1 className="font-brice-semibold text-2xl">Profile</h1>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-gray-600">EQBk...3yR5</span>
-                  <button
-                    className="p-1 hover:bg-gray-100 rounded-full"
-                  >
+                  <button className="p-1 hover:bg-gray-100 rounded-full">
                     <Copy size={14} />
                   </button>
-                  <button
-                    className="p-1 hover:bg-gray-100 rounded-full"
-                  >
+                  <button className="p-1 hover:bg-gray-100 rounded-full">
                     <ExternalLink size={14} />
                   </button>
                 </div>
@@ -88,11 +80,11 @@ export default function Profile() {
               className="w-full flex items-center justify-center gap-2 bg-[#ff6961] text-white py-4 px-6 rounded-xl border-black border-2 font-semibold"
             >
               <LogOut size={20} /> */}
-              {/* Disconnect Wallet */}
-              <div
-              className="flex justify-center"
-              ><ConnectButton/></div>
-              
+            {/* Disconnect Wallet */}
+            <div className="flex justify-center">
+              <ConnectButton />
+            </div>
+
             {/* </motion.button> */}
           </div>
         </motion.div>

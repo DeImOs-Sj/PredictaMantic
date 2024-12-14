@@ -155,7 +155,7 @@ export default function Home() {
     address: import.meta.env.VITE_PREDICTION_CONTRACT_ADDRESS as `0x${string}`,
     abi: abi,
     functionName: "getMarketInfo",
-    args: [BigInt(currentMarketId)],
+    args: [BigInt(3)],
   });
 
   useEffect(() => {
@@ -169,7 +169,16 @@ export default function Home() {
         totalOptionAShares,
         totalOptionBShares,
         resolved,
-      ] = marketData;
+      ] = marketData as [
+        string,
+        string,
+        string,
+        number,
+        number,
+        number,
+        number,
+        boolean
+      ];
 
       const newMarket: Market = {
         id: currentMarketId,

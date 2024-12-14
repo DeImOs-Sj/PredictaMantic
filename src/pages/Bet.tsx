@@ -69,6 +69,8 @@ export default function Bet() {
         abi: tokenAbi,
         functionName: "approve",
         args: [PREDICTION_CONTRACT, BETTING_AMOUNT],
+        chain: undefined,
+        account: undefined,
       });
     } catch (error) {
       console.error("Error approving token:", error);
@@ -87,10 +89,12 @@ export default function Bet() {
         abi: abi,
         functionName: "buyShares",
         args: [
-          BigInt(1),
+          BigInt(3),
           prediction === "0", // isOptionA: true for Yes, false for No
           BETTING_AMOUNT,
         ],
+        chain: undefined,
+        account: undefined,
       });
     } catch (error) {
       console.error("Error buying shares:", error);
