@@ -9,41 +9,24 @@ import {
 } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useReadContract, useReadContracts } from "wagmi";
-import { abi } from "../abi/abi";
+import { useReadContract } from "wagmi";
+import { abi } from "@/abi/abi";
 
-const dummyMarketDataArray: Market[] = [
-  {
-    id: BigInt(1),
-    description: "Will it rain tomorrow?",
-    image: "/result.jpeg",
-    endTime: 0n,
-    status: 0,
-    totalPool: 0n,
-    yesPool: 0n,
-    noPool: 0n,
-  },
-  {
-    id: BigInt(2),
-    description: "Is the stock market going up?",
-    image: "/result.jpeg",
-    endTime: 0n,
-    status: 0,
-    totalPool: 0n,
-    yesPool: 0n,
-    noPool: 0n,
-  },
-  {
-    id: BigInt(3),
-    description: "Will the next iPhone have a notch?",
-    image: "/result.jpeg",
-    endTime: 0n,
-    status: 0,
-    totalPool: 0n,
-    yesPool: 0n,
-    noPool: 0n,
-  },
-];
+const TOTAL_MARKETS = 5; // Assuming we have 5 markets total
+
+interface Market {
+  id: number;
+  question: string;
+  optionA: string;
+  optionB: string;
+  endTime: number;
+  outcome: number;
+  totalOptionAShares: number;
+  totalOptionBShares: number;
+  totalPool: number;
+  resolved: boolean;
+  image?: string;
+}
 
 const SwipeableCard = ({
   market,
@@ -58,113 +41,6 @@ const SwipeableCard = ({
   const yesOpacity = useTransform(x, [-200, 0, 100], [0, 0, 1]);
   const noOpacity = useTransform(x, [-100, 0, 200], [1, 0, 0]);
   const controls = useAnimation();
-  const [markets, setMarkets] = useState<Market[]>([]);
-  const [currentMarketId, setCurrentMarketId] = useState<number>(3);
-
-  const { data: nextMarketId } = useReadContract({
-    address: "0x22ac2b97c22fb8c11f4380d35bfd24d7c3c504A4",
-    abi,
-    functionName: "nextMarketId",
-  });
-
-  useEffect(() => {
-    console.log("Next market ID:", nextMarketId);
-  }, [nextMarketId]);
-
-  const {
-    data: marketData,
-    isError,
-    isLoading,
-    error,
-  } = useReadContract({
-    address: "0x22ac2b97c22fb8c11f4380d35bfd24d7c3c504A4",
-    abi: [
-      {
-        inputs: [
-          {
-            internalType: "uint256",
-            name: "marketId",
-            type: "uint256",
-          },
-        ],
-        name: "getMarket",
-        outputs: [
-          {
-            internalType: "uint256",
-            name: "id",
-            type: "uint256",
-          },
-          {
-            internalType: "string",
-            name: "description",
-            type: "string",
-          },
-          {
-            internalType: "uint256",
-            name: "endTime",
-            type: "uint256",
-          },
-          {
-            internalType: "enum BinaryPredictionMarket.MarketStatus",
-            name: "status",
-            type: "uint8",
-          },
-          {
-            internalType: "enum BinaryPredictionMarket.Prediction",
-            name: "winningPrediction",
-            type: "uint8",
-          },
-          {
-            internalType: "uint256",
-            name: "totalPool",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "yesPool",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "noPool",
-            type: "uint256",
-          },
-        ],
-        stateMutability: "view",
-        type: "function",
-      },
-    ],
-    functionName: "getMarket",
-    args: [BigInt(currentMarketId)],
-  });
-
-  console.log("Market data:", currentMarketId, marketData);
-
-  useEffect(() => {
-    if (marketData) {
-      console.log("Current market ID:", currentMarketId);
-      console.log("Raw market data:", marketData);
-
-      // Format the data for better debugging
-      const formattedData = {
-        id: marketData[0]?.toString(),
-        description: marketData[1],
-        endTime: marketData[2]
-          ? new Date(Number(marketData[2]) * 1000).toLocaleString()
-          : null,
-        status: marketData[3],
-        winningPrediction: marketData[4],
-        totalPool: marketData[5]?.toString(),
-        yesPool: marketData[6]?.toString(),
-        noPool: marketData[7]?.toString(),
-      };
-
-      console.log("Formatted market data:", formattedData);
-    }
-    if (isError) {
-      console.error("Error fetching market:", error);
-    }
-  }, [marketData, isError, error, currentMarketId]);
 
   const handleDragEnd = async (_: never, info: PanInfo) => {
     const swipeThreshold = 100;
@@ -246,19 +122,18 @@ const SwipeableCard = ({
         </div>
 
         <div className="absolute bottom-14 left-4 flex flex-col gap-4 text-white">
-          <h2 className="font-brice-semibold text-2xl">{market.description}</h2>
+          <h2 className="font-brice-semibold text-2xl">{market.question}</h2>
           <div className="flex flex-col gap-2">
-            {/* <p>{market.predictionX}</p>
+            <p>{market.optionA}</p> VS <p>{market.optionB}</p>
             <Progress
-              value={(Number(market.poolX) / Number(market.totalPool)) * 100}
+              value={(market.totalOptionAShares / market.totalPool) * 100}
             />
             <p>
-              {(
-                (Number(market.poolX) / Number(market.totalPool)) *
-                100
-              ).toFixed(1)}
+              {((market.totalOptionAShares / market.totalPool) * 100).toFixed(
+                1
+              )}
               % Chance
-            </p> */}
+            </p>
           </div>
         </div>
       </div>
@@ -267,55 +142,94 @@ const SwipeableCard = ({
 };
 
 export default function Home() {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const navigate = useNavigate();
+  const [markets, setMarkets] = useState<Market[]>([]);
+  const [currentMarketId, setCurrentMarketId] = useState(1);
+
   const {
     data: marketData,
     isError,
     isLoading,
   } = useReadContract({
-    address: "0x22ac2b97c22fb8c11f4380d35bfd24d7c3c504A4",
-    abi,
-    functionName: "getMarket",
-    args: [BigInt(1)], // Update args if marketId is dynamic
+    address: import.meta.env.VITE_PREDICTION_CONTRACT_ADDRESS as `0x${string}`,
+    abi: abi,
+    functionName: "getMarketInfo",
+    args: [BigInt(currentMarketId)],
   });
 
   useEffect(() => {
     if (marketData) {
-      console.log("Raw market data:", marketData);
-    } else if (isError) {
-      console.error("Error fetching market data.");
-    } else if (isLoading) {
-      console.log("Loading market data...");
-    }
-  }, [marketData, isError, isLoading]);
+      const [
+        question,
+        optionA,
+        optionB,
+        endTime,
+        outcome,
+        totalOptionAShares,
+        totalOptionBShares,
+        resolved,
+      ] = marketData;
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const navigate = useNavigate();
-  const [market, setMarket] = useState<Market | null>(null);
+      const newMarket: Market = {
+        id: currentMarketId,
+        question,
+        optionA,
+        optionB,
+        outcome: Number(outcome),
+        endTime: Number(endTime),
+        resolved,
+        totalPool: Number(totalOptionAShares) + Number(totalOptionBShares),
+        totalOptionAShares: Number(totalOptionAShares),
+        totalOptionBShares: Number(totalOptionBShares),
+        image: "/result.jpeg",
+      };
 
-  useEffect(() => {
-    console.log(market);
-  });
-  const handleSwipe = (direction: "left" | "right") => {
-    if (direction === "right") {
-      navigate(`/bet/${dummyMarketDataArray[currentIndex].id}`);
-    }
-    setCurrentIndex((prevIndex) => {
-      if (prevIndex < dummyMarketDataArray.length - 1) {
-        return prevIndex + 1;
+      setMarkets((prevMarkets) => {
+        const existingMarkets = prevMarkets.filter(
+          (m) => m.id !== newMarket.id
+        );
+        return [...existingMarkets, newMarket].sort((a, b) => a.id - b.id);
+      });
+
+      // Fetch next market if we don't have it yet
+      if (
+        currentMarketId < TOTAL_MARKETS &&
+        !markets.some((m) => m.id === currentMarketId + 1)
+      ) {
+        setCurrentMarketId(currentMarketId + 1);
       }
-      return 0;
+    }
+  }, [marketData, currentMarketId]);
+
+  const handleSwipe = (direction: "left" | "right") => {
+    if (direction === "right" && markets[currentIndex]) {
+      navigate(`/bet/${markets[currentIndex].id}`);
+    }
+
+    setCurrentIndex((prevIndex) => {
+      const nextIndex = prevIndex + 1;
+      // If we're approaching the end, try to fetch the next market
+      if (nextIndex + 1 >= markets.length && currentMarketId < TOTAL_MARKETS) {
+        setCurrentMarketId((prev) => prev + 1);
+      }
+      return nextIndex;
     });
   };
+
+  if (isLoading && !markets.length) return <div>Loading...</div>;
+  if (isError) return <div>Error loading market data</div>;
+  if (!markets.length) return <div>No markets available</div>;
 
   return (
     <div className="px-4 pb-14">
       <div className="relative h-[70vh]">
-        {dummyMarketDataArray.map((market, index) => {
+        {markets.map((market, index) => {
           if (index < currentIndex || index > currentIndex + 1) return null;
 
           return (
             <SwipeableCard
-              key={Number(market.id)}
+              key={market.id}
               market={market}
               onSwipe={handleSwipe}
             />

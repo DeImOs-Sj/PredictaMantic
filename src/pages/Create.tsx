@@ -16,7 +16,6 @@ import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 export default function Create() {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-
   const { data: hash, writeContract } = useWriteContract();
 
   const { isSuccess: isConfirmed } = useWaitForTransactionReceipt({
@@ -33,8 +32,10 @@ export default function Create() {
   }, [isConfirmed, toast]);
 
   const [formData, setFormData] = useState({
-    description: "",
-    endTime: new Date(),
+    question: "",
+    optionA: "",
+    optionB: "",
+    duration: new Date(),
   });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -43,16 +44,25 @@ export default function Create() {
     try {
       setLoading(true);
 
-      const endTimeUnix = Math.floor(formData.endTime.getTime() / 1000);
+      const endTimeUnix = Math.floor(formData.duration.getTime() / 1000);
 
-      console.log("Creating market with description:", formData.description);
+      console.log("Creating market with description:", formData.question);
       console.log("End time:", endTimeUnix);
 
+      console.log(
+        "Creating market...",
+        import.meta.env.VITE_PREDICTION_CONTRACT_ADDRESS
+      );
       await writeContract({
-        address: "0x22ac2b97c22fb8c11f4380d35bfd24d7c3c504A4",
+        address: import.meta.env.VITE_PREDICTION_CONTRACT_ADDRESS,
         abi: abi,
         functionName: "createMarket",
-        args: [formData.description, endTimeUnix],
+        args: [
+          formData.question,
+          formData.optionA,
+          formData.optionB,
+          endTimeUnix,
+        ],
       });
     } catch (error) {
       console.error("Error creating market:", error);
@@ -65,9 +75,8 @@ export default function Create() {
       setLoading(false);
     }
   };
-
   return (
-    <div className="px-4 py-8">
+    <div className="min-h-screen px-4 py-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -83,15 +92,47 @@ export default function Create() {
               <label className="block mb-2 font-medium">Description</label>
               <input
                 type="text"
-                value={formData.description}
+                value={formData.question}
                 onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
+                  setFormData({ ...formData, question: e.target.value })
                 }
                 className="w-full p-3 border-2 border-black rounded-xl"
                 placeholder="Will it rain tomorrow?"
                 required
                 disabled={loading}
               />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block mb-2 font-medium">Option 1</label>
+                <input
+                  type="text"
+                  value={formData.optionA}
+                  onChange={(e) =>
+                    setFormData({ ...formData, optionA: e.target.value })
+                  }
+                  className="w-full p-3 border-2 border-black rounded-xl"
+                  placeholder="Yes"
+                  required
+                  disabled={loading}
+                />
+              </div>
+
+              <div>
+                <label className="block mb-2 font-medium">Option 2</label>
+                <input
+                  type="text"
+                  value={formData.optionB}
+                  onChange={(e) =>
+                    setFormData({ ...formData, optionB: e.target.value })
+                  }
+                  className="w-full p-3 border-2 border-black rounded-xl"
+                  placeholder="No"
+                  required
+                  disabled={loading}
+                />
+              </div>
             </div>
 
             <div>
@@ -102,13 +143,13 @@ export default function Create() {
                     type="button"
                     className={cn(
                       "w-full p-3 border-2 border-black rounded-xl flex items-center justify-start text-left font-normal",
-                      !formData.endTime && "text-muted-foreground"
+                      !formData.duration && "text-muted-foreground"
                     )}
                     disabled={loading}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.endTime ? (
-                      format(formData.endTime, "PPP")
+                    {formData.duration ? (
+                      format(formData.duration, "PPP")
                     ) : (
                       <span>Pick a date</span>
                     )}
@@ -117,9 +158,9 @@ export default function Create() {
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
-                    selected={formData.endTime}
+                    selected={formData.duration}
                     onSelect={(date) =>
-                      date && setFormData({ ...formData, endTime: date })
+                      date && setFormData({ ...formData, duration: date })
                     }
                     initialFocus
                   />
