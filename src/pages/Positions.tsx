@@ -19,7 +19,7 @@ interface Position {
 const dummyPositions: Position[] = [
   {
     marketId: BigInt(1),
-    description: "Will it rain tomorrow?",
+    description: "Will ETH reach 10k?",
     predictionX: "Yes",
     predictionY: "No",
     endTime: BigInt(1733310646),
@@ -99,7 +99,7 @@ export default function Positions() {
                     )}
                   </div>
                   <span className="text-sm">
-                    You bet {formatTON(position.amount)} TON on{" "}
+                    You bet {formatTON(position.amount)} MNT on{" "}
                     {position.prediction === BigInt(0)
                       ? position.predictionX
                       : position.predictionY}
@@ -121,7 +121,7 @@ export default function Positions() {
                       ).toFixed(1)}
                       %
                     </span>
-                    <span>{formatTON(position.poolX)} TON</span>
+                    <span>{formatTON(position.poolX)} MNT</span>
                   </div>
                 </div>
 

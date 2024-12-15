@@ -62,13 +62,13 @@ export default function Profile() {
               <h2 className="font-semibold">Recent Activity</h2>
               <div className="border-2 border-black rounded-xl p-3">
                 <div className="text-sm text-gray-600">
-                  Placed 0.1 TON on "Will it rain tomorrow?"
+                  Placed 0.1 MNT on "Will it rain tomorrow?"
                 </div>
                 <div className="text-xs text-gray-500 mt-1">2 hours ago</div>
               </div>
               <div className="border-2 border-black rounded-xl p-3">
                 <div className="text-sm text-gray-600">
-                  Won 0.2 TON from "Will BTC reach 100k?"
+                  Won 0.2 MNT from "Will BTC reach 100k?"
                 </div>
                 <div className="text-xs text-gray-500 mt-1">1 day ago</div>
               </div>

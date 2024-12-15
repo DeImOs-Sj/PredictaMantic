@@ -1,9 +1,6 @@
-import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 export default function Login() {
-
-
-
   return (
     <div className="flex flex-col gap-10 px-10 py-20 justify-end bg-[#d3aeff] text-black h-screen w-screen font-brice-regular">
       <img
@@ -26,15 +23,10 @@ export default function Login() {
         <h1 className="text-5xl">Join. Predict. Connect.</h1>
         <p className="text-sm">
           Bet on outcomes, join exclusive discussions, and connect with a
-          community. <br /> Powered by TON Blockchain.
+          community. <br /> Powered by MNT Blockchain.
         </p>
       </div>
       <div className="bg-black w-fit h-fit rounded-lg">
-        {/* <button
-          className="bg-[#fede64] px-6 py-2 text-2xl border-black border-2 rounded-lg -translate-y-1 -translate-x-1 active:translate-y-0 active:translate-x-0 transition-all"
-        >
-          Connect Wallet
-        </button> */}
         <ConnectButton />
       </div>
     </div>
