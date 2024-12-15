@@ -89,7 +89,7 @@ export default function Bet() {
         abi: abi,
         functionName: "buyShares",
         args: [
-          BigInt(id),
+          BigInt(5),
           prediction === "0", // isOptionA: true for Yes, false for No
           BETTING_AMOUNT,
         ],

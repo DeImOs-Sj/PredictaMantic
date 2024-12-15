@@ -347,6 +347,7 @@ const useMarkets = () => {
   const market2 = useMarket(2);
   const market3 = useMarket(3);
   const market4 = useMarket(4);
+  const market5 = useMarket(5);
 
   useEffect(() => {
     const processMarketData = () => {
@@ -356,8 +357,18 @@ const useMarkets = () => {
         { result: market2, id: 2 },
         { result: market3, id: 3 },
         { result: market4, id: 4 },
+        { result: market5, id: 5 },
       ];
       const newMarkets: Market[] = [];
+
+      console.log(
+        "Hello",
+        market1.data,
+        market2.data,
+        market3.data,
+        market4.data,
+        market5.data
+      );
 
       marketResults.forEach(({ result, id }) => {
         if (result.data) {
@@ -420,6 +431,7 @@ const useMarkets = () => {
     market2.data,
     market3.data,
     market4.data,
+    market5.data,
     market1.isError,
     market2.isError,
     market3.isError,
